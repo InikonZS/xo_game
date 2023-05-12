@@ -166,6 +166,11 @@ async function init(){
         console.log(resource)
         const animation = new Spine(resource.spineData);
         animation.position.set(100, 100);
+        animation.state.addListener({
+            complete:(e)=>{
+                console.log('complete spine')
+            }
+        })
         app.stage.addChild(animation);
     
         // add the animation to the scene and render...
