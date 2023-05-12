@@ -187,6 +187,20 @@ async function init(){
         const winMessage = new BitmapText(text, {
             fontName: 'lightFont'
         });
+        let scaler = 0;
+        winMessage.scale.set(scaler, scaler);
+        const h = ()=>{
+            scaler+=0.05;
+            if (scaler>=1){
+                scaler = 1;
+                app.ticker.remove(h);
+                //ticker.stop();
+            }
+            winMessage.scale.set(scaler, scaler);
+            //ticker.destroy();
+            //app.ticker.remove()
+        }
+        const ticker = app.ticker.add(h);
         app.stage.addChild(winMessage);
         winMessage.interactive = true;
         winMessage.on('click', ()=>{
