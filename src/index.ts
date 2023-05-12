@@ -1,4 +1,4 @@
-import { AnimatedSprite, Application, Assets, BitmapFont, BitmapText, Container, Point, Sprite, Spritesheet, Text, Texture } from 'pixi.js';
+import { AnimatedSprite, Application, Assets, BitmapFont, BitmapText, Container, LoadAsset, Point, Sprite, Spritesheet, Text, Texture } from 'pixi.js';
 import circle from './assets/images/tiles/circle.png';
 import cross from './assets/images/tiles/cross.png';
 import lightFontPath from './assets/fonts/lightFont.fnt';
@@ -6,11 +6,12 @@ import lightFontImgPath from './assets/fonts/lightFont.png';
 import aniPath from './assets/png_sequences/sequence.json';
 import aniImgPath from './assets/png_sequences/sequence.png';
 import fieldBackground from './assets/images/playfield.png';
-import { Spine } from 'pixi-spine';
-import spineAniData from './assets/export_spine/skeletons/cross.json';
-import sa from './assets/export_spine/skeletons/cross.atlas';
-import sp from'./assets/export_spine/skeletons/spine.png';
-console.log(aniImgPath, lightFontImgPath, sa, sp);
+import { Spine, TextureAtlas } from 'pixi-spine';
+import spineCircleData from './assets/export_spine/skeletons/circle.json';
+import spineCrossData from './assets/export_spine/skeletons/cross.json';
+import sa from './assets/export_spine/spine.atlas';
+import sp from'./assets/export_spine/spine.png';
+console.log(aniImgPath, lightFontImgPath, sp);
 
 interface IVector{
     x: number;
@@ -155,10 +156,41 @@ async function init(){
     const fnt = await Assets.load(lightFontPath);
     //const fontTexture = await Assets.load(lightFontImgPath);
     //const lightFont = new BitmapFont(fnt, [], true);
-
-    Assets.load(spineAniData).then((resource) => {
+    let a: LoadAsset = {
+        src: spineCircleData,
+        data: {
+            spineAtlasFile: sa
+        }
+    }
+    Assets.load(a).then((resource) => {
+        console.log(resource)
         const animation = new Spine(resource.spineData);
         animation.position.set(100, 100);
+        app.stage.addChild(animation);
+    
+        // add the animation to the scene and render...
+        app.stage.addChild(animation);
+        
+        if (animation.state.hasAnimation('draw')) {
+            // run forever, little boy!
+            animation.state.setAnimation(0, 'draw', true);
+            // dont run too fast
+            animation.state.timeScale = 0.1;
+            // update yourself
+            animation.autoUpdate = true;
+        }
+    });
+
+    let b: LoadAsset = {
+        src: spineCrossData,
+        data: {
+            spineAtlasFile: sa
+        }
+    }
+    Assets.load(b).then((resource) => {
+        console.log(resource)
+        const animation = new Spine(resource.spineData);
+        animation.position.set(200, 100);
         app.stage.addChild(animation);
     
         // add the animation to the scene and render...
