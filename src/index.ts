@@ -1,4 +1,4 @@
-import { AnimatedSprite, Application, Assets, BitmapFont, BitmapText, Point, Sprite, Spritesheet, Text, Texture } from 'pixi.js';
+import { AnimatedSprite, Application, Assets, BitmapFont, BitmapText, Container, Point, Sprite, Spritesheet, Text, Texture } from 'pixi.js';
 import circle from './assets/images/tiles/circle.png';
 import cross from './assets/images/tiles/cross.png';
 import lightFontPath from './assets/fonts/lightFont.fnt';
@@ -158,10 +158,15 @@ async function init(){
     const crossTexture= await Assets.load(cross);
     const fieldTexture = await Assets.load(fieldBackground);
     const fieldSprite = new Sprite(fieldTexture);
-    const cellSize = 100;
-    fieldSprite.width = (cellSize + 15) * 3 - 15;
-    fieldSprite.height = (cellSize + 15) * 3 - 15;
-    app.stage.addChild(fieldSprite);
+    const fieldContainer = new Container();
+    fieldContainer.position.set(300, 200);
+    fieldSprite.height = 325;
+    fieldSprite.width = 325;
+    const cellSize = (fieldSprite.width + 15) / 3 - 15;
+    //fieldSprite.width = (cellSize + 15) * 3 - 15;
+    //fieldSprite.height = (cellSize + 15) * 3 - 15;
+    fieldContainer.addChild(fieldSprite);
+    app.stage.addChild(fieldContainer);
     const bunny = new Sprite(texture);
     bunny.interactive = true;
     bunny.on('click', ()=>{
@@ -225,16 +230,18 @@ async function init(){
                     //aniSprite.
                     aniSprite.play();
                     aniSprite.x = x * (cellSize + 15)-32;
-                    aniSprite.y = y * (cellSize + 15)-32;
+                    aniSprite.y = y * (cellSize +15)-32;
                     aniSprite.width = cellSize * 1.63;
                     aniSprite.height = cellSize * 1.63;
-                    app.stage.addChild(aniSprite);
+                    //aniSprite.width = cellSize * 1.53;
+                    //aniSprite.height = cellSize * 1.53;
+                    fieldContainer.addChild(aniSprite);
                     aniSprite.loop = false;
                     aniSprite.onComplete = ()=>{
                         //aniSprite.
                         console.log('complete circle');
                         aniSprite.stop();
-                        app.stage.removeChild(aniSprite);
+                        fieldContainer.removeChild(aniSprite);
                         views[y][x].texture = [Texture.EMPTY, crossTexture, circleTexture][sign];
                         if (model.currentPlayerIndex ==  1){
                             model.botMove();
@@ -248,7 +255,7 @@ async function init(){
 
     const views: Array<Array<Sprite>> = model.field.map((row, y)=>{
         return row.map((sign, x)=> {
-            const cell = new Sprite(Texture.EMPTY);
+            const cell = new Sprite(Texture.WHITE);
             cell.x = x * (cellSize + 15);
             cell.y = y * (cellSize + 15);
             cell.width = cellSize;
@@ -263,7 +270,8 @@ async function init(){
             cell.on('mouseleave', ()=>{
                 //cell.width = cellSize;
             });
-            app.stage.addChild(cell);
+            
+            fieldContainer.addChild(cell);
             return cell;
         })
     })
