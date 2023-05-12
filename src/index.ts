@@ -34,6 +34,10 @@ class GameModel{
         if (this.checkWinner(Sign.circle)){
             console.log('circle wins');
         };
+
+        if (this.currentPlayerIndex == 1){
+            this.botMove();
+        }
     }
 
     private checkWinner(sign: Sign){
@@ -91,6 +95,22 @@ class GameModel{
         }
 
         return false;
+    }
+
+    botMove(){
+        const empties: Array<IVector> = [];
+        this.field.map((row, y)=>{
+            row.map((sign, x)=>{
+                if (sign == Sign.empty){
+                    empties.push({x, y});
+                }
+            })
+        });
+        if (empties.length == 0){
+            console.log('no empty cell');
+            return;
+        }
+        this.move(empties[Math.floor(Math.random() * empties.length)], Sign.circle);
     }
 }
 
