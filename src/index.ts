@@ -1,6 +1,11 @@
-import { Application, Assets, Point, Sprite, Texture } from 'pixi.js';
+import { AnimatedSprite, Application, Assets, BitmapFont, BitmapText, Point, Sprite, Spritesheet, Text, Texture } from 'pixi.js';
 import circle from './assets/images/tiles/circle.png';
 import cross from './assets/images/tiles/cross.png';
+import lightFontPath from './assets/fonts/lightFont.fnt';
+import lightFontImgPath from './assets/fonts/lightFont.png';
+import aniPath from './assets/png_sequences/sequence.json';
+import aniImgPath from './assets/png_sequences/sequence.png';
+console.log(aniImgPath, lightFontImgPath);
 
 interface IVector{
     x: number;
@@ -119,6 +124,28 @@ async function init(){
     document.body.appendChild(app.view as HTMLCanvasElement);
     const texture = await Assets.load(circle);
 
+    const ani = await Assets.load(aniPath) as Spritesheet;
+    //const aniImg = await Assets.load(aniImgPath);
+    ani.animations['cross'] = new Array(20).fill(0).map((it, i)=> ani.textures['cross-draw_'+ (i<10 ? '0'+ i : i.toString())]);
+    ani.animations['circle'] = new Array(20).fill(0).map((it, i)=> ani.textures['circle-draw_'+ (i<10 ? '0'+ i : i.toString())]);
+    const aniSprite = new AnimatedSprite(ani.animations['circle']);
+    aniSprite.play();
+    aniSprite.x = 600;
+    aniSprite.y = 600;
+    app.stage.addChild(aniSprite);
+    aniSprite.loop = false;
+    aniSprite.onComplete = ()=>{
+        //aniSprite.
+        console.log('complete circle');
+        aniSprite.stop();
+    }
+    console.log(ani)
+    const fnt = await Assets.load(lightFontPath);
+    //const fontTexture = await Assets.load(lightFontImgPath);
+    //const lightFont = new BitmapFont(fnt, [], true);
+
+    const txt = new BitmapText('test bitmap', {fontName: 'lightFont'});
+    app.stage.addChild(txt);
     const circleTexture = await Assets.load(circle);
     const crossTexture= await Assets.load(cross);
     const bunny = new Sprite(texture);
@@ -128,8 +155,8 @@ async function init(){
     })
     bunny.width = 100;
 
-    bunny.x = app.renderer.width / 2;
-    bunny.y = app.renderer.height / 2;
+    aniSprite.x = app.renderer.width / 2;
+    aniSprite.y = app.renderer.height / 2;
 
     bunny.anchor.x = 0.5;
     bunny.anchor.y = 0.5;

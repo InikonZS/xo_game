@@ -5,7 +5,8 @@
     "module": "es6",
     "target": "es5",
     "allowJs": true,
-    "moduleResolution": "nodenext"
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": false
   },
   "files": ["src/index.ts", "./assets.d.ts"]
 }
