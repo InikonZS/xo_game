@@ -5,6 +5,7 @@ import lightFontPath from './assets/fonts/lightFont.fnt';
 import lightFontImgPath from './assets/fonts/lightFont.png';
 import aniPath from './assets/png_sequences/sequence.json';
 import aniImgPath from './assets/png_sequences/sequence.png';
+import fieldBackground from './assets/images/playfield.png';
 console.log(aniImgPath, lightFontImgPath);
 
 interface IVector{
@@ -20,7 +21,7 @@ enum Sign{
 
 class GameModel{
     field: Array<Array<Sign>>;
-    onChange: ()=>void;
+    onChange: (pos: IVector)=>void;
     currentPlayerIndex: number = 0;
 
     constructor(){
@@ -32,7 +33,7 @@ class GameModel{
         this.field[position.y][position.x] = sign;
         const playersCount = 2;
         this.currentPlayerIndex = (this.currentPlayerIndex + 1) % playersCount;
-        this.onChange?.();
+        this.onChange?.(position);
         if (this.checkWinner(Sign.cross)){
             console.log('cross wins');
         };
@@ -40,9 +41,9 @@ class GameModel{
             console.log('circle wins');
         };
 
-        if (this.currentPlayerIndex == 1){
+        /*if (this.currentPlayerIndex == 1){
             this.botMove();
-        }
+        }*/
     }
 
     private checkWinner(sign: Sign){
@@ -148,6 +149,12 @@ async function init(){
     app.stage.addChild(txt);
     const circleTexture = await Assets.load(circle);
     const crossTexture= await Assets.load(cross);
+    const fieldTexture = await Assets.load(fieldBackground);
+    const fieldSprite = new Sprite(fieldTexture);
+    const cellSize = 100;
+    fieldSprite.width = (cellSize + 15) * 3 - 15;
+    fieldSprite.height = (cellSize + 15) * 3 - 15;
+    app.stage.addChild(fieldSprite);
     const bunny = new Sprite(texture);
     bunny.interactive = true;
     bunny.on('click', ()=>{
@@ -168,18 +175,39 @@ async function init(){
     });
 
     const model = new GameModel();
-    model.onChange = ()=>{
+    model.onChange = (pos)=>{
         model.field.map((row, y)=>{
             return row.map((sign, x)=> {
-                views[y][x].texture = [Texture.WHITE, crossTexture, circleTexture][sign];
+                if (pos.x == x && pos.y ==y){
+                    const aniSprite = new AnimatedSprite(ani.animations[['', 'cross', 'circle'][sign]]);
+                    //aniSprite.texture = Texture.WHITE;
+                    //aniSprite.
+                    aniSprite.play();
+                    aniSprite.x = x * (cellSize + 15)-32;
+                    aniSprite.y = y * (cellSize + 15)-32;
+                    aniSprite.width = cellSize * 1.63;
+                    aniSprite.height = cellSize * 1.63;
+                    app.stage.addChild(aniSprite);
+                    aniSprite.loop = false;
+                    aniSprite.onComplete = ()=>{
+                        //aniSprite.
+                        console.log('complete circle');
+                        aniSprite.stop();
+                        app.stage.removeChild(aniSprite);
+                        views[y][x].texture = [Texture.EMPTY, crossTexture, circleTexture][sign];
+                        if (model.currentPlayerIndex ==  1){
+                            model.botMove();
+                        }
+                    }
+                }
+                //views[y][x].texture = [Texture.WHITE, crossTexture, circleTexture][sign];
             });
         });
     };
 
-    const cellSize = 100;
     const views: Array<Array<Sprite>> = model.field.map((row, y)=>{
         return row.map((sign, x)=> {
-            const cell = new Sprite(Texture.WHITE);
+            const cell = new Sprite(Texture.EMPTY);
             cell.x = x * (cellSize + 15);
             cell.y = y * (cellSize + 15);
             cell.width = cellSize;
@@ -189,10 +217,10 @@ async function init(){
                 model.move({x, y}, Sign.cross);
             });
             cell.on('mouseenter', ()=>{
-                cell.width = cellSize + 3;
+                //cell.width = cellSize + 3;
             });
             cell.on('mouseleave', ()=>{
-                cell.width = cellSize;
+                //cell.width = cellSize;
             });
             app.stage.addChild(cell);
             return cell;
