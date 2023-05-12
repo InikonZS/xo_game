@@ -22,9 +22,14 @@ enum Sign{
 class GameModel{
     field: Array<Array<Sign>>;
     onChange: (pos: IVector)=>void;
+    onWin: (sign: Sign)=>void;
     currentPlayerIndex: number = 0;
 
     constructor(){
+        this.start();
+    }
+
+    start(){
         const size = 3;
         this.field = new Array(size).fill(null).map(() => new Array(size).fill(Sign.empty));
     }
@@ -36,9 +41,11 @@ class GameModel{
         this.onChange?.(position);
         if (this.checkWinner(Sign.cross)){
             console.log('cross wins');
+            this.onWin?.(Sign.cross);
         };
         if (this.checkWinner(Sign.circle)){
             console.log('circle wins');
+            this.onWin?.(Sign.circle);
         };
 
         /*if (this.currentPlayerIndex == 1){
@@ -175,6 +182,26 @@ async function init(){
     });
 
     const model = new GameModel();
+    model.onWin = (sign)=>{
+        const text = ['', 'cross win', 'circle win'][sign];
+        const winMessage = new BitmapText(text, {
+            fontName: 'lightFont'
+        });
+        app.stage.addChild(winMessage);
+        winMessage.interactive = true;
+        winMessage.on('click', ()=>{
+            app.stage.removeChild(winMessage);
+            winMessage.destroy();
+            model.start();
+            model.field.map((row, y)=>{
+                return row.map((sign, x)=> {
+                views[y][x].texture = [Texture.WHITE, crossTexture, circleTexture][sign];   
+                });
+            });
+        })
+       // winMessage.destroy();
+    }
+
     model.onChange = (pos)=>{
         model.field.map((row, y)=>{
             return row.map((sign, x)=> {
