@@ -40,7 +40,7 @@ const config = {
                 use: [stylesHandler,'css-loader'],
             },
             {
-                test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif|fnt|json)$/i,
+                test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif|fnt|json|spine|atlas)$/i,
                 type: 'asset/resource',
                 generator: {
                     filename: 'assets/[name][ext]'
