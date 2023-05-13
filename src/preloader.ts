@@ -6,7 +6,6 @@ import lightFontImgPath from './assets/fonts/lightFont.png';
 import aniPath from './assets/png_sequences/sequence.json';
 import aniImgPath from './assets/png_sequences/sequence.png';
 import fieldBackground from './assets/images/playfield.png';
-import { Spine, TextureAtlas } from 'pixi-spine';
 import spineCircleData from './assets/export_spine/skeletons/circle.json';
 import spineCrossData from './assets/export_spine/skeletons/cross.json';
 import sa from './assets/export_spine/spine.atlas';

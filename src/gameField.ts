@@ -44,18 +44,14 @@ export class GameField{
                 if (pos.x == x && pos.y ==y){
                     const aniSprite = new AnimatedSprite(this.resources.frameAnimations.animations[['', 'cross', 'circle'][sign]]);
                     //aniSprite.texture = Texture.WHITE;
-                    //aniSprite.
                     aniSprite.play();
                     aniSprite.x = x * (cellSize + 15)-32;
                     aniSprite.y = y * (cellSize +15)-32;
                     aniSprite.width = cellSize * 1.63;
                     aniSprite.height = cellSize * 1.63;
-                    //aniSprite.width = cellSize * 1.53;
-                    //aniSprite.height = cellSize * 1.53;
                     this.fieldContainer.addChild(aniSprite);
                     aniSprite.loop = false;
                     aniSprite.onComplete = ()=>{
-                        //aniSprite.
                         console.log('complete circle');
                         aniSprite.stop();
                         this.fieldContainer.removeChild(aniSprite);
@@ -65,7 +61,6 @@ export class GameField{
                         }
                     }
                 }
-                //views[y][x].texture = [Texture.WHITE, crossTexture, circleTexture][sign];
             });
         });
     }
@@ -73,8 +68,7 @@ export class GameField{
     reset(){
         this.model.field.map((row, y)=>{
             return row.map((sign, x)=> {
-                this.views[y][x].setSign(sign);
-            //views[y][x].texture = [Texture.WHITE, crossTexture, circleTexture][sign];   
+                this.views[y][x].setSign(sign);  
             });
         });
     }
