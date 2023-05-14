@@ -16,7 +16,7 @@ async function init(){
 
     const model = new GameModel();
     const gameField = new GameField(app, model, resources);
-    const aniSprite = new AnimatedSprite(resources.frameAnimations.animations['circle']);
+    /*const aniSprite = new AnimatedSprite(resources.frameAnimations.animations['circle']);
     aniSprite.play();
     aniSprite.x = 600;
     aniSprite.y = 600;
@@ -25,7 +25,7 @@ async function init(){
     aniSprite.onComplete = ()=>{
         console.log('complete circle');
         aniSprite.stop();
-    }
+    }*/
 
     {
         const resource = resources.spineCircleData;
@@ -72,11 +72,8 @@ async function init(){
         }
     };
 
-    const txt = new BitmapText('test bitmap', {fontName: 'lightFont'});
-    app.stage.addChild(txt);
-
-    aniSprite.x = app.renderer.width / 2;
-    aniSprite.y = app.renderer.height / 2;
+    //const txt = new BitmapText('test bitmap', {fontName: 'lightFont'});
+    //app.stage.addChild(txt);
 
     model.onWin = (sign)=>{
         const winMessage = new WinMessage(app, sign);
