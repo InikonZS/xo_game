@@ -11,11 +11,13 @@ export class WinMessage{
 
         const text = ['', 'cross win', 'circle win'][sign];
         const winMessage = new BitmapText(text, {
-            fontName: 'lightFont'
+            fontName: sign == Sign.circle ? 'lightFont' : 'darkFont'
         });
         this.winMessage = winMessage;
         let scaler = 0;
         winMessage.scale.set(scaler, scaler);
+        winMessage.anchor.set(0.5, 0.5);
+        winMessage.position.set(app.screen.width/2, winMessage.fontSize / 2);
         const h = ()=>{
             scaler+=0.05;
             if (scaler>=1){

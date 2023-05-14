@@ -58,6 +58,12 @@ export class GameField{
         });
     }
 
+    setWinData(data: Array<IVector>){
+        data.forEach(it=>{
+            this.views[it.y][it.x].setWin();
+        })
+    }
+
     destroy(){
 
     }
@@ -105,6 +111,10 @@ class Cell extends Container{
         this.cell.texture = [Texture.WHITE, this.resources.crossTexture, this.resources.circleTexture][sign];
     }
 
+    setWin(){
+        this.cell.texture = this.resources.winTexture;
+    }
+
     animateSign(sign: Sign){
         const cellSize = this.cellSize;
 
@@ -116,6 +126,7 @@ class Cell extends Container{
         aniSprite.y = (this.posY - 1) * (cellSize + 15);
         aniSprite.width = cellSize * 1.52;
         aniSprite.height = cellSize * 1.52;
+        console.log(aniSprite.texture.orig, aniSprite.getBounds(), cellSize, aniSprite);
 
         this.addChild(aniSprite);
         aniSprite.loop = false;

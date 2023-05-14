@@ -2,7 +2,7 @@ import { GameModel } from './gameModel';
 import { WinMessage } from './winMessage';
 import { GameField } from './gameField';
 import { AnimatedSprite, Application, Assets, BitmapFont, BitmapText, Container, LoadAsset, Point, Sprite, Spritesheet, Text, Texture } from 'pixi.js';
-import { Sign } from './types';
+import { IVector, Sign } from './types';
 import { Resources } from './preloader';
 import { Spine } from 'pixi-spine';
 import './style.css';
@@ -21,8 +21,9 @@ async function init(){
     const model = new GameModel();
     const gameField = new GameField(app, model, resources);
 
-    model.onWin = (sign)=>{
+    model.onWin = (sign, data)=>{
         const winMessage = new WinMessage(app, sign);
+        gameField.setWinData(data);
         winMessage.onPlayAgain = ()=>{
             winMessage.destroy();
             model.start();

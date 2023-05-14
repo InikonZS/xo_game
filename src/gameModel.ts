@@ -3,7 +3,7 @@ import { IVector, Sign } from "./types";
 export class GameModel{
     field: Array<Array<Sign>>;
     onChange: (pos: IVector)=>void;
-    onWin: (sign: Sign)=>void;
+    onWin: (sign: Sign, data: Array<IVector>)=>void;
     currentPlayerIndex: number = 0;
 
     constructor(){
@@ -20,13 +20,15 @@ export class GameModel{
         const playersCount = 2;
         this.currentPlayerIndex = (this.currentPlayerIndex + 1) % playersCount;
         this.onChange?.(position);
-        if (this.checkWinner(Sign.cross)){
+        let crossData = this.checkWinner(Sign.cross);
+        if (crossData){
             console.log('cross wins');
-            this.onWin?.(Sign.cross);
+            this.onWin?.(Sign.cross, crossData);
         };
-        if (this.checkWinner(Sign.circle)){
+        let circleData = this.checkWinner(Sign.circle)
+        if (circleData){
             console.log('circle wins');
-            this.onWin?.(Sign.circle);
+            this.onWin?.(Sign.circle, circleData);
         };
 
         /*if (this.currentPlayerIndex == 1){
@@ -36,18 +38,20 @@ export class GameModel{
 
     private checkWinner(sign: Sign){
         const size = this.field.length;
-
+        let lineData = [];
         //horizontal check
         for (let i=0; i < size; i++){
             let isLine = true;
             for (let j=0; j < size; j++){
+                lineData.push({x:j, y:i});
                 if (this.field[i][j] != sign){
                     isLine = false;
+                    lineData = [];
                     break;
                 }
             }
             if (isLine){
-                return true;
+                return lineData;
             }
         }
 
@@ -55,40 +59,46 @@ export class GameModel{
         for (let i=0; i < size; i++){
             let isLine = true;
             for (let j=0; j < size; j++){
+                lineData.push({x:i, y:j});
                 if (this.field[j][i] != sign){
                     isLine = false;
+                    lineData = [];
                     break;
                 }
             }
             if (isLine){
-                return true;
+                return lineData;
             }
         }
 
         //diagonal check
         let isMainLine = true;
         for (let j=0; j < size; j++){
+            lineData.push({x:j, y:j});
             if (this.field[j][j] != sign){
+                lineData = [];
                 isMainLine = false;
                 break;
             }
         }
         if (isMainLine){
-            return true;
+            return lineData;
         }
 
         let isSecondLine = true;
         for (let j=0; j < size; j++){
+            lineData.push({x:j, y:size - j - 1});
             if (this.field[j][size - j - 1] != sign){
                 isSecondLine = false;
+                lineData = [];
                 break;
             }
         }
         if (isSecondLine){
-            return true;
+            return lineData;
         }
 
-        return false;
+        return null;
     }
 
     botMove(){
