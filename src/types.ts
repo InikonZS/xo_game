@@ -6,5 +6,6 @@ export interface IVector{
 export enum Sign{
     empty = 0,
     cross = 1,
-    circle = 2
+    circle = 2,
+    nothing = 3
 }

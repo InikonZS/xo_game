@@ -3,6 +3,9 @@ import { IVector, Sign } from "./types";
 import { GameModel } from "./gameModel";
 import { Resources } from "./preloader";
 import { Spine } from "pixi-spine";
+import { Signal } from "./common/signal";
+
+const spineEnabled = true;
 
 export class GameField{
     model: GameModel;
@@ -10,7 +13,9 @@ export class GameField{
     resources: Resources;
     fieldContainer: Container;
     cellSize: number;
+    cancellationToken: Signal<void>;
     constructor(app: Application, model: GameModel, resources: Resources){
+        this.cancellationToken = new Signal();
         this.model = model;
         this.resources = resources;
         const fieldSprite = new Sprite(resources.fieldTexture);
@@ -44,13 +49,15 @@ export class GameField{
         model.field.map((row, y)=>{
             return row.map((sign, x)=> {
                 if (pos.x == x && pos.y ==y){
-                    this.views[y][x].animateSign(sign);    
+                    this.views[y][x].animateSign(sign, this.cancellationToken);    
                 }
             });
         });
     }
 
     reset(){
+        this.cancellationToken.emit();
+        this.cancellationToken = new Signal();
         this.model.field.map((row, y)=>{
             return row.map((sign, x)=> {
                 this.views[y][x].setSign(sign); 
@@ -139,13 +146,18 @@ class Cell extends Container{
         //this.cell.texture = this.resources.winTexture;
     }
 
-    animateSign1(sign: Sign){
+    animateSignFrames(sign: Sign, cancellationToken: Signal<void>){
         const cellSize = this.cellSize;
 
         const aniSprite = new AnimatedSprite(this.resources.frameAnimations.animations[['', 'cross', 'circle'][sign]]);
         //aniSprite.texture = Texture.WHITE;
         aniSprite.anchor.set(0.5, 0.5);
         aniSprite.play();
+        cancellationToken.add(()=>{
+            aniSprite.stop();
+            this.removeChild(aniSprite);
+            this.setSign(sign);
+        })
         //aniSprite.x = (this.posX - 1) * (cellSize + 15);
         //aniSprite.y = (this.posY - 1) * (cellSize + 15);
         aniSprite.width = cellSize * 1.52;
@@ -160,13 +172,13 @@ class Cell extends Container{
             this.removeChild(aniSprite);
             this.setSign(sign);
             //this.views[y][x].setSign(sign);
-            if (this.model.currentPlayerIndex ==  1){
-                this.model.botMove();
-            }
+            //if (this.model.currentPlayerIndex ==  1){
+            this.model.botMove();
+            //}
         }
     }
 
-    animateSign(sign: Sign){
+    animateSignSpine(sign: Sign, cancellationToken: Signal<void>){
         const cellSize = this.cellSize;
 
         const resource = [null, this.resources.spineCrossData, this.resources.spineCircleData][sign];
@@ -194,6 +206,10 @@ class Cell extends Container{
             }
             aniSprite.update(t/100);
         };
+        cancellationToken.add(()=>{
+            aniSprite.autoUpdate = false;
+            stop = true;
+        })
         this.app.ticker.add(h);
         //animation.pivot.set(-100,-100)
         //animation.position.set(100, 100);
@@ -242,5 +258,13 @@ class Cell extends Container{
                 this.model.botMove();
             }
         }*/    
+    }
+
+    animateSign(sign: Sign, cancellationToken: Signal<void>){
+        if (spineEnabled){
+            this.animateSignSpine(sign, cancellationToken)
+        }  else {
+            this.animateSignFrames(sign, cancellationToken);
+        }
     }
 }

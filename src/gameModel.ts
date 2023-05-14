@@ -164,6 +164,7 @@ export class GameModel{
         });
         if (empties.length == 0){
             console.log('no empty cell');
+            this.onWin(Sign.nothing, []);
             return;
         }
         this.move(empties[Math.floor(Math.random() * empties.length)], Sign.circle);
@@ -177,7 +178,8 @@ export class GameModel{
             const count = {
                 [Sign.cross]: 0,
                 [Sign.circle]: 0,
-                [Sign.empty]: 0
+                [Sign.empty]: 0,
+                [Sign.nothing]: 0
             }
             line.forEach(it=>{
                 count[it.value]+=1;

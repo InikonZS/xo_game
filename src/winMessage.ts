@@ -9,7 +9,7 @@ export class WinMessage{
     constructor(app: Application, sign: Sign){
         this.app = app;
 
-        const text = ['', 'cross win', 'circle win'][sign];
+        const text = ['', 'cross win', 'circle win', 'no winner'][sign];
         const winMessage = new BitmapText(text, {
             fontName: sign == Sign.circle ? 'lightFont' : 'darkFont'
         });
