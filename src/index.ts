@@ -5,6 +5,7 @@ import { AnimatedSprite, Application, Assets, BitmapFont, BitmapText, Container,
 import { Sign } from './types';
 import { Resources } from './preloader';
 import { Spine } from 'pixi-spine';
+import './style.css';
 
 async function init(){    
     const app = new Application();
@@ -13,67 +14,12 @@ async function init(){
     console.log('loading...');
     await resources.load();
     console.log('loaded');
-
+    app.resizeTo = document.body;
+    window.addEventListener('resize', ()=>{   
+        //app.resize();
+    })
     const model = new GameModel();
     const gameField = new GameField(app, model, resources);
-    /*const aniSprite = new AnimatedSprite(resources.frameAnimations.animations['circle']);
-    aniSprite.play();
-    aniSprite.x = 600;
-    aniSprite.y = 600;
-    app.stage.addChild(aniSprite);
-    aniSprite.loop = false;
-    aniSprite.onComplete = ()=>{
-        console.log('complete circle');
-        aniSprite.stop();
-    }*/
-
-    {
-        const resource = resources.spineCircleData;
-        console.log(resource)
-        const animation = new Spine(resource.spineData);
-        animation.position.set(100, 100);
-        animation.state.addListener({
-            complete:(e)=>{
-                console.log('complete spine')
-            }
-        })
-        app.stage.addChild(animation);
-    
-        // add the animation to the scene and render...
-        app.stage.addChild(animation);
-        
-        if (animation.state.hasAnimation('draw')) {
-            // run forever, little boy!
-            animation.state.setAnimation(0, 'draw', true);
-            // dont run too fast
-            animation.state.timeScale = 0.1;
-            // update yourself
-            animation.autoUpdate = true;
-        }
-    }
-
-    {
-        const resource = resources.spineCrossData;
-        console.log(resource)
-        const animation = new Spine(resource.spineData);
-        animation.position.set(200, 100);
-        app.stage.addChild(animation);
-    
-        // add the animation to the scene and render...
-        app.stage.addChild(animation);
-        
-        if (animation.state.hasAnimation('draw')) {
-            // run forever, little boy!
-            animation.state.setAnimation(0, 'draw', true);
-            // dont run too fast
-            animation.state.timeScale = 0.1;
-            // update yourself
-            animation.autoUpdate = true;
-        }
-    };
-
-    //const txt = new BitmapText('test bitmap', {fontName: 'lightFont'});
-    //app.stage.addChild(txt);
 
     model.onWin = (sign)=>{
         const winMessage = new WinMessage(app, sign);

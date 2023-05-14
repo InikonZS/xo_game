@@ -14,9 +14,10 @@ export class GameField{
         this.model = model;
         this.resources = resources;
         const fieldSprite = new Sprite(resources.fieldTexture);
+        fieldSprite.anchor.set(0.5, 0.5);
         const fieldContainer = new Container();
         this.fieldContainer = fieldContainer;
-        fieldContainer.position.set(300, 200);
+        fieldContainer.position.set(app.screen.width/2, app.screen.height/2);
         fieldSprite.height = 325;
         fieldSprite.width = 325;
         const cellSize = (fieldSprite.width + 15) / 3 - 15;
@@ -80,8 +81,9 @@ class Cell extends Container{
         this.resources = resources;
         const cell = new Sprite(Texture.WHITE);
         this.cell = cell;
-        cell.x = x * (cellSize + 15);
-        cell.y = y * (cellSize + 15);
+        cell.anchor.set(0.5, 0.5);
+        cell.x = (x - 1) * (cellSize + 15);
+        cell.y = (y - 1) * (cellSize + 15);
         cell.width = cellSize;
         cell.height = cellSize;
         cell.interactive = true;
@@ -103,16 +105,17 @@ class Cell extends Container{
         this.cell.texture = [Texture.WHITE, this.resources.crossTexture, this.resources.circleTexture][sign];
     }
 
-    animateSign1(sign: Sign){
+    animateSign(sign: Sign){
         const cellSize = this.cellSize;
 
         const aniSprite = new AnimatedSprite(this.resources.frameAnimations.animations[['', 'cross', 'circle'][sign]]);
         //  aniSprite.texture = Texture.WHITE;
+        aniSprite.anchor.set(0.5, 0.5);
         aniSprite.play();
-        aniSprite.x = this.posX * (cellSize + 15)-32;
-        aniSprite.y = this.posY * (cellSize +15)-32;
-        aniSprite.width = cellSize * 1.63;
-        aniSprite.height = cellSize * 1.63;
+        aniSprite.x = (this.posX - 1) * (cellSize + 15);
+        aniSprite.y = (this.posY - 1) * (cellSize + 15);
+        aniSprite.width = cellSize * 1.52;
+        aniSprite.height = cellSize * 1.52;
 
         this.addChild(aniSprite);
         aniSprite.loop = false;
@@ -128,7 +131,7 @@ class Cell extends Container{
         }
     }
 
-    animateSign(sign: Sign){
+    animateSign1(sign: Sign){
         const cellSize = this.cellSize;
 
         const resource = [null, this.resources.spineCrossData, this.resources.spineCircleData][sign];
@@ -156,7 +159,7 @@ class Cell extends Container{
             aniSprite.update(t/100);
         };
         this.app.ticker.add(h);
-        animation.pivot.set(-100,-100)
+        //animation.pivot.set(-100,-100)
         //animation.position.set(100, 100);
         animation.state.addListener({
             complete:(e)=>{
@@ -181,11 +184,12 @@ class Cell extends Container{
         //const aniSprite = new AnimatedSprite(this.resources.frameAnimations.animations[['', 'cross', 'circle'][sign]]);
         //aniSprite.texture = Texture.WHITE;
         //aniSprite.play();
-        aniSprite.x = this.posX * (cellSize + 15)-32;
-        aniSprite.y = this.posY * (cellSize +15)-32;
-        aniSprite.scale.set(0.8,0.8);
-        //aniSprite.width = cellSize * 1.63;
-        //aniSprite.height = cellSize * 1.63;
+        aniSprite.x = (this.posX - 1) * (cellSize + 15);
+        aniSprite.y = (this.posY - 1) * (cellSize + 15);
+        
+        aniSprite.width = cellSize * 1;
+        aniSprite.height =  cellSize * 1;
+        //aniSprite.pivot.set(-aniSprite.width / 2, -aniSprite.height/2);
         this.addChild(aniSprite);
         console.log(aniSprite.width, aniSprite.height, aniSprite.getBounds());
         //aniSprite.width = 10;
