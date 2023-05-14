@@ -112,7 +112,8 @@ class Cell extends Container{
         cell.height = cellSize;
         cell.interactive = true;
         cell.on('click', ()=>{
-            model.move({x, y}, Sign.cross);
+            const result = model.move({x, y}, Sign.cross);
+            console.log(result);
         });
         cell.on('mouseenter', ()=>{
             this.hover.alpha = 0.1;
@@ -206,9 +207,9 @@ class Cell extends Container{
             //this.removeChild(aniSprite);
             this.setSign(sign);
             //this.views[y][x].setSign(sign);
-            if (this.model.currentPlayerIndex ==  1){
-                this.model.botMove();
-            }
+            //if (this.model.currentPlayerIndex ==  1){
+            this.model.botMove();
+            //}
                 //console.log('complete spine')
             },
             event: (e)=>{

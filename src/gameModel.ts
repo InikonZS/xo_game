@@ -5,17 +5,31 @@ export class GameModel{
     onChange: (pos: IVector)=>void;
     onWin: (sign: Sign, data: Array<IVector>)=>void;
     currentPlayerIndex: number = 0;
+    winner: Sign = Sign.empty;
 
     constructor(){
         this.start();
     }
 
     start(){
+        console.log('restart game');
         const size = 3;
+        this.currentPlayerIndex = 0;
+        this.winner = Sign.empty;
         this.field = new Array(size).fill(null).map(() => new Array(size).fill(Sign.empty));
     }
 
     move(position: IVector, sign: Sign){
+        if (this.winner != Sign.empty){
+            return false;
+        }
+        console.log('allow move');
+        if((sign - 1)!=this.currentPlayerIndex){
+            return false;
+        }
+        if (this.field[position.y][position.x]!=Sign.empty){
+            return false;
+        }
         this.field[position.y][position.x] = sign;
         const playersCount = 2;
         this.currentPlayerIndex = (this.currentPlayerIndex + 1) % playersCount;
@@ -23,13 +37,16 @@ export class GameModel{
         let crossData = this.checkWinner(Sign.cross);
         if (crossData){
             console.log('cross wins');
+            this.winner = Sign.cross;
             this.onWin?.(Sign.cross, crossData);
         };
         let circleData = this.checkWinner(Sign.circle)
         if (circleData){
             console.log('circle wins');
+            this.winner = Sign.circle;
             this.onWin?.(Sign.circle, circleData);
         };
+        return true;
 
         /*if (this.currentPlayerIndex == 1){
             this.botMove();
