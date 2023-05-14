@@ -53,14 +53,15 @@ export class GameField{
     reset(){
         this.model.field.map((row, y)=>{
             return row.map((sign, x)=> {
-                this.views[y][x].setSign(sign);  
+                this.views[y][x].setSign(sign); 
+                this.views[y][x].setWin(false); 
             });
         });
     }
 
     setWinData(data: Array<IVector>){
         data.forEach(it=>{
-            this.views[it.y][it.x].setWin();
+            this.views[it.y][it.x].setWin(true);
         })
     }
 
@@ -77,6 +78,8 @@ class Cell extends Container{
     cellSize: number;
     model: GameModel;
     app: Application;
+    highlight: Sprite;
+    hover: Sprite;
     constructor(app: Application, model: GameModel, resources: Resources, x: number, y: number, cellSize: number){
         super();
         this.app = app;
@@ -85,11 +88,26 @@ class Cell extends Container{
         this.model = model;
         this.cellSize = cellSize;
         this.resources = resources;
-        const cell = new Sprite(Texture.WHITE);
+        this.highlight = new Sprite(resources.winTexture);
+        this.highlight.anchor.set(0.5,0.5);
+        this.highlight.width = cellSize;
+        this.highlight.height = cellSize;
+        this.highlight.visible = false;
+        this.addChild(this.highlight);
+
+        this.hover = new Sprite(resources.winTexture);
+        this.hover.anchor.set(0.5,0.5);
+        this.hover.width = cellSize;
+        this.hover.height = cellSize;
+        this.hover.visible = true;
+        this.hover.alpha = 0;
+
+        this.addChild(this.hover);
+        const cell = new Sprite(Texture.EMPTY);
         this.cell = cell;
         cell.anchor.set(0.5, 0.5);
-        cell.x = (x - 1) * (cellSize + 15);
-        cell.y = (y - 1) * (cellSize + 15);
+        //cell.x = (x - 1) * (cellSize + 15);
+        //cell.y = (y - 1) * (cellSize + 15);
         cell.width = cellSize;
         cell.height = cellSize;
         cell.interactive = true;
@@ -97,33 +115,38 @@ class Cell extends Container{
             model.move({x, y}, Sign.cross);
         });
         cell.on('mouseenter', ()=>{
+            this.hover.alpha = 0.1;
             //cell.width = cellSize + 3;
         });
         cell.on('mouseleave', ()=>{
-            //cell.width = cellSize;
+            this.hover.alpha = 0;
         });
-
+        this.x = (x - 1) * (cellSize + 15);
+        this.y = (y - 1) * (cellSize + 15);
             
         this.addChild(cell);
     }
 
     setSign(sign:Sign){
-        this.cell.texture = [Texture.WHITE, this.resources.crossTexture, this.resources.circleTexture][sign];
+        this.cell.texture = [Texture.EMPTY, this.resources.crossTexture, this.resources.circleTexture][sign];
+        this.cell.width = this.cellSize;
+        this.cell.height = this.cellSize;
     }
 
-    setWin(){
-        this.cell.texture = this.resources.winTexture;
+    setWin(value: boolean){
+        this.highlight.visible = value;
+        //this.cell.texture = this.resources.winTexture;
     }
 
-    animateSign(sign: Sign){
+    animateSign1(sign: Sign){
         const cellSize = this.cellSize;
 
         const aniSprite = new AnimatedSprite(this.resources.frameAnimations.animations[['', 'cross', 'circle'][sign]]);
-        //  aniSprite.texture = Texture.WHITE;
+        //aniSprite.texture = Texture.WHITE;
         aniSprite.anchor.set(0.5, 0.5);
         aniSprite.play();
-        aniSprite.x = (this.posX - 1) * (cellSize + 15);
-        aniSprite.y = (this.posY - 1) * (cellSize + 15);
+        //aniSprite.x = (this.posX - 1) * (cellSize + 15);
+        //aniSprite.y = (this.posY - 1) * (cellSize + 15);
         aniSprite.width = cellSize * 1.52;
         aniSprite.height = cellSize * 1.52;
         console.log(aniSprite.texture.orig, aniSprite.getBounds(), cellSize, aniSprite);
@@ -142,7 +165,7 @@ class Cell extends Container{
         }
     }
 
-    animateSign1(sign: Sign){
+    animateSign(sign: Sign){
         const cellSize = this.cellSize;
 
         const resource = [null, this.resources.spineCrossData, this.resources.spineCircleData][sign];
@@ -150,6 +173,7 @@ class Cell extends Container{
         //resource.height = cellSize;
         console.log(resource)
         const animation = new Spine(resource.spineData);
+        //animation.state.setAnimation(0, 'win', false);
         if (animation.state.hasAnimation('draw')) {
             // run forever, little boy!
             animation.state.setAnimation(0, 'draw', false);
@@ -195,8 +219,8 @@ class Cell extends Container{
         //const aniSprite = new AnimatedSprite(this.resources.frameAnimations.animations[['', 'cross', 'circle'][sign]]);
         //aniSprite.texture = Texture.WHITE;
         //aniSprite.play();
-        aniSprite.x = (this.posX - 1) * (cellSize + 15);
-        aniSprite.y = (this.posY - 1) * (cellSize + 15);
+        //aniSprite.x = (this.posX - 1) * (cellSize + 15);
+        //aniSprite.y = (this.posY - 1) * (cellSize + 15);
         
         aniSprite.width = cellSize * 1;
         aniSprite.height =  cellSize * 1;

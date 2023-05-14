@@ -41,6 +41,12 @@ export class Resources{
         this.frameAnimations.animations['circle'] = new Array(20).fill(0).map((it, i)=> {
             return this.frameAnimations.textures['circle-draw_'+ (i<10 ? '0'+ i : i.toString())];
         });
+        this.frameAnimations.animations['cross-win'] = new Array(30).fill(0).map((it, i)=> {
+            return this.frameAnimations.textures['cross-win_'+ (i<10 ? '0'+ i : i.toString())];
+        });
+        this.frameAnimations.animations['circle-win'] = new Array(30).fill(0).map((it, i)=> {
+            return this.frameAnimations.textures['circle-win_'+ (i<10 ? '0'+ i : i.toString())];
+        });
 
         this.lightFont = await Assets.load(lightFontPath);
         this.darkFont = await Assets.load(darkFontPath);
