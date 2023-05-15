@@ -149,8 +149,11 @@ class Cell extends Container{
     setWin(value: boolean, cancellationToken: Signal<void>){
         this.highlight.visible = value;
         const animation = this.signSpine;
+        if (!animation){
+            return;
+        }
         if (value == false) {
-            animation?.destroy();
+            animation.destroy();
             this.signSpine = null;
             this.removeChild(animation);
             return;
@@ -183,35 +186,34 @@ class Cell extends Container{
     }
 
     animateSignFrames(sign: Sign, cancellationToken: Signal<void>){
-        const cellSize = this.cellSize;
+        return new Promise<void>((resolve)=>{
+            const cellSize = this.cellSize;
 
-        const aniSprite = new AnimatedSprite(this.resources.frameAnimations.animations[['', 'cross', 'circle'][sign]]);
-        //aniSprite.texture = Texture.WHITE;
-        aniSprite.anchor.set(0.5, 0.5);
-        aniSprite.play();
-        cancellationToken.add(()=>{
-            aniSprite.stop();
-            this.removeChild(aniSprite);
-            this.setSign(sign);
+            const aniSprite = new AnimatedSprite(this.resources.frameAnimations.animations[['', 'cross', 'circle'][sign]]);
+            aniSprite.anchor.set(0.5, 0.5);
+            aniSprite.play();
+            cancellationToken.add(()=>{
+                aniSprite.stop();
+                this.removeChild(aniSprite);
+                this.setSign(sign);
+            })
+            aniSprite.width = cellSize * 1.52;
+            aniSprite.height = cellSize * 1.52;
+            console.log(aniSprite.texture.orig, aniSprite.getBounds(), cellSize, aniSprite);
+
+            this.addChild(aniSprite);
+            aniSprite.loop = false;
+            aniSprite.onComplete = ()=>{
+                console.log('complete circle');
+                aniSprite.stop();
+                this.removeChild(aniSprite);
+                this.setSign(sign);
+
+                this.model.botMove();
+                resolve();
+            }
         })
-        //aniSprite.x = (this.posX - 1) * (cellSize + 15);
-        //aniSprite.y = (this.posY - 1) * (cellSize + 15);
-        aniSprite.width = cellSize * 1.52;
-        aniSprite.height = cellSize * 1.52;
-        console.log(aniSprite.texture.orig, aniSprite.getBounds(), cellSize, aniSprite);
-
-        this.addChild(aniSprite);
-        aniSprite.loop = false;
-        aniSprite.onComplete = ()=>{
-            console.log('complete circle');
-            aniSprite.stop();
-            this.removeChild(aniSprite);
-            this.setSign(sign);
-            //this.views[y][x].setSign(sign);
-            //if (this.model.currentPlayerIndex ==  1){
-            this.model.botMove();
-            //}
-        }
+        
     }
 
     animateSignSpine(sign: Sign, cancellationToken: Signal<void>): Promise<void>{
@@ -262,7 +264,7 @@ class Cell extends Container{
         if (spineEnabled){
             return this.animateSignSpine(sign, cancellationToken)
         }  else {
-            this.animateSignFrames(sign, cancellationToken);
+            return this.animateSignFrames(sign, cancellationToken);
         }
     }
 }
