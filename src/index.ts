@@ -27,12 +27,15 @@ async function init(){
 
     model.onWin = (sign, data)=>{
         const winMessage = new WinMessage(app, sign);
-        gameField.setWinData(data);
-        winMessage.onPlayAgain = ()=>{
-            winMessage.destroy();
-            model.start();
-            gameField.reset();
-        }
+        gameField.setWinData(data).then(()=>{
+            winMessage.onPlayAgain = ()=>{
+                winMessage.onPlayAgain = null;
+                winMessage.destroy();
+                model.start();
+                gameField.reset();
+            }
+        });
+        
     }
 
     model.onChange = (pos)=>{

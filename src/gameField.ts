@@ -14,6 +14,7 @@ export class GameField{
     fieldContainer: Container;
     cellSize: number;
     cancellationToken: Signal<void>;
+    asyncOperation: Promise<void|any>;
     constructor(app: Application, model: GameModel, resources: Resources){
         this.cancellationToken = new Signal();
         this.model = model;
@@ -49,7 +50,8 @@ export class GameField{
         model.field.map((row, y)=>{
             return row.map((sign, x)=> {
                 if (pos.x == x && pos.y ==y){
-                    this.views[y][x].animateSign(sign, this.cancellationToken);    
+                    //this.asyncOperation = (this.asyncOperation || Promise.resolve()).then(()=>this.views[y][x].animateSign(sign, this.cancellationToken));  
+                    this.asyncOperation = Promise.all([(this.asyncOperation || Promise.resolve()), this.views[y][x].animateSign(sign, this.cancellationToken)])  
                 }
             });
         });
@@ -67,9 +69,11 @@ export class GameField{
     }
 
     setWinData(data: Array<IVector>){
-        data.forEach(it=>{
-            this.views[it.y][it.x].setWin(true, this.cancellationToken);
-        })
+        return (this.asyncOperation || Promise.resolve()).then(()=>{
+            data.forEach(it=>{
+                this.views[it.y][it.x].setWin(true, this.cancellationToken);
+            })
+        })     
     }
 
     destroy(){
@@ -210,49 +214,53 @@ class Cell extends Container{
         }
     }
 
-    animateSignSpine(sign: Sign, cancellationToken: Signal<void>){
-        const cellSize = this.cellSize;
-        const resource = [null, this.resources.spineCrossData, this.resources.spineCircleData][sign];
-        console.log(resource)
-        const animation = new Spine(resource.spineData);
-        this.signSpine = animation;
-        if (animation.state.hasAnimation('draw')) {
-            animation.state.setAnimation(0, 'draw', false);
-            animation.state.timeScale = 0.5;
-            animation.autoUpdate = false;
-        }
-        let stop: boolean = false;
-        const h = (t: number)=>{
-            if (stop == true){
-                this.app.ticker.remove(h);
-                //aniSprite.destroy();
-                //this.removeChild(aniSprite);
-                return;
+    animateSignSpine(sign: Sign, cancellationToken: Signal<void>): Promise<void>{
+        return new Promise((resolve)=>{
+           const cellSize = this.cellSize;
+            const resource = [null, this.resources.spineCrossData, this.resources.spineCircleData][sign];
+            console.log(resource)
+            const animation = new Spine(resource.spineData);
+            this.signSpine = animation;
+            if (animation.state.hasAnimation('draw')) {
+                animation.state.setAnimation(0, 'draw', false);
+                animation.state.timeScale = 0.5;
+                animation.autoUpdate = false;
             }
-            aniSprite.update(t/100);
-        };
-        cancellationToken.add(()=>{
-            stop = true;
-        })
-        this.app.ticker.add(h);
-        animation.state.addListener({
-            complete:(e)=>{
-                console.log('complete circle');
+            let stop: boolean = false;
+            const h = (t: number)=>{
+                if (stop == true){
+                    this.app.ticker.remove(h);
+                    resolve();
+                    //aniSprite.destroy();
+                    //this.removeChild(aniSprite);
+                    return;
+                }
+                aniSprite.update(t/100);
+            };
+            cancellationToken.add(()=>{
                 stop = true;
-                //this.setSign(sign);
-                this.model.botMove();
-            }
+            })
+            this.app.ticker.add(h);
+            animation.state.addListener({
+                complete:(e)=>{
+                    console.log('complete circle');
+                    stop = true;
+                    //this.setSign(sign);
+                    this.model.botMove();
+                }
+            })
+            const aniSprite = animation;
+            
+            aniSprite.width = cellSize * 1;
+            aniSprite.height =  cellSize * 1;
+            this.addChild(aniSprite);  
         })
-        const aniSprite = animation;
         
-        aniSprite.width = cellSize * 1;
-        aniSprite.height =  cellSize * 1;
-        this.addChild(aniSprite); 
     }
 
     animateSign(sign: Sign, cancellationToken: Signal<void>){
         if (spineEnabled){
-            this.animateSignSpine(sign, cancellationToken)
+            return this.animateSignSpine(sign, cancellationToken)
         }  else {
             this.animateSignFrames(sign, cancellationToken);
         }
