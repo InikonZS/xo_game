@@ -18,6 +18,10 @@ async function init(){
     window.addEventListener('resize', ()=>{   
         //app.resize();
     })
+    const background = new Sprite(resources.background);
+    background.anchor.set(0.5, 0.5);
+    background.position.set(app.screen.width / 2, app.screen.height / 2);
+    app.stage.addChild(background);
     const model = new GameModel();
     const gameField = new GameField(app, model, resources);
 

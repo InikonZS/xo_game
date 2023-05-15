@@ -13,6 +13,7 @@ import spineCrossData from './assets/export_spine/skeletons/cross.json';
 import sa from './assets/export_spine/spine.atlas';
 import sp from'./assets/export_spine/spine.png';
 import winPath from './assets/images/win_highlight.png';
+import backgroundPath from './assets/images/bg.png';
 
 lightFontImgPath;
 darkFontImgPath;
@@ -29,6 +30,7 @@ export class Resources{
     fieldTexture: Texture;
     darkFont: any;
     winTexture: Texture;
+    background: Texture;
     constructor(){
 
     }
@@ -69,5 +71,6 @@ export class Resources{
         this.crossTexture= await Assets.load(cross);
         this.fieldTexture = await Assets.load(fieldBackground);
         this.winTexture= await Assets.load(winPath);
+        this.background = await Assets.load(backgroundPath);
     }
 }
