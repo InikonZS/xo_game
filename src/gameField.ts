@@ -28,8 +28,6 @@ export class GameField{
         fieldSprite.width = 325;
         const cellSize = (fieldSprite.width + 15) / 3 - 15;
         this.cellSize = cellSize;
-        //fieldSprite.width = (cellSize + 15) * 3 - 15;
-        //fieldSprite.height = (cellSize + 15) * 3 - 15;
         fieldContainer.addChild(fieldSprite);
         app.stage.addChild(fieldContainer);
 
@@ -50,7 +48,9 @@ export class GameField{
         model.field.map((row, y)=>{
             return row.map((sign, x)=> {
                 if (pos.x == x && pos.y ==y){
+                    //one by one
                     //this.asyncOperation = (this.asyncOperation || Promise.resolve()).then(()=>this.views[y][x].animateSign(sign, this.cancellationToken));  
+                    //parallel animation
                     this.asyncOperation = Promise.all([(this.asyncOperation || Promise.resolve()), this.views[y][x].animateSign(sign, this.cancellationToken)])  
                 }
             });
@@ -118,8 +118,7 @@ class Cell extends Container{
         const cell = new Sprite(Texture.EMPTY);
         this.cell = cell;
         cell.anchor.set(0.5, 0.5);
-        //cell.x = (x - 1) * (cellSize + 15);
-        //cell.y = (y - 1) * (cellSize + 15);
+
         cell.width = cellSize;
         cell.height = cellSize;
         cell.interactive = true;
@@ -129,7 +128,6 @@ class Cell extends Container{
         });
         cell.on('mouseenter', ()=>{
             this.hover.alpha = 0.1;
-            //cell.width = cellSize + 3;
         });
         cell.on('mouseleave', ()=>{
             this.hover.alpha = 0;
@@ -162,8 +160,6 @@ class Cell extends Container{
         const h = (t: number)=>{
             if (stop == true){
                 this.app.ticker.remove(h);
-                //aniSprite.destroy();
-                //this.removeChild(aniSprite);
                 return;
             }
             animation.update(t/100);
