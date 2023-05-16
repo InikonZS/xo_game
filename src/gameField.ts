@@ -14,6 +14,7 @@ export class GameField{
     fieldContainer: Container;
     cellSize: number;
     cancellationToken: Signal<void>;
+    asyncOperation: Promise<void|any>;
     constructor(app: Application, model: GameModel, resources: Resources){
         this.cancellationToken = new Signal();
         this.model = model;
@@ -27,8 +28,6 @@ export class GameField{
         fieldSprite.width = 325;
         const cellSize = (fieldSprite.width + 15) / 3 - 15;
         this.cellSize = cellSize;
-        //fieldSprite.width = (cellSize + 15) * 3 - 15;
-        //fieldSprite.height = (cellSize + 15) * 3 - 15;
         fieldContainer.addChild(fieldSprite);
         app.stage.addChild(fieldContainer);
 
@@ -49,7 +48,10 @@ export class GameField{
         model.field.map((row, y)=>{
             return row.map((sign, x)=> {
                 if (pos.x == x && pos.y ==y){
-                    this.views[y][x].animateSign(sign, this.cancellationToken);    
+                    //one by one
+                    //this.asyncOperation = (this.asyncOperation || Promise.resolve()).then(()=>this.views[y][x].animateSign(sign, this.cancellationToken));  
+                    //parallel animation
+                    this.asyncOperation = Promise.all([(this.asyncOperation || Promise.resolve()), this.views[y][x].animateSign(sign, this.cancellationToken)])  
                 }
             });
         });
@@ -61,15 +63,17 @@ export class GameField{
         this.model.field.map((row, y)=>{
             return row.map((sign, x)=> {
                 this.views[y][x].setSign(sign); 
-                this.views[y][x].setWin(false); 
+                this.views[y][x].setWin(false, this.cancellationToken); 
             });
         });
     }
 
     setWinData(data: Array<IVector>){
-        data.forEach(it=>{
-            this.views[it.y][it.x].setWin(true);
-        })
+        return (this.asyncOperation || Promise.resolve()).then(()=>{
+            data.forEach(it=>{
+                this.views[it.y][it.x].setWin(true, this.cancellationToken);
+            })
+        })     
     }
 
     destroy(){
@@ -87,6 +91,7 @@ class Cell extends Container{
     app: Application;
     highlight: Sprite;
     hover: Sprite;
+    signSpine: Spine;
     constructor(app: Application, model: GameModel, resources: Resources, x: number, y: number, cellSize: number){
         super();
         this.app = app;
@@ -113,8 +118,7 @@ class Cell extends Container{
         const cell = new Sprite(Texture.EMPTY);
         this.cell = cell;
         cell.anchor.set(0.5, 0.5);
-        //cell.x = (x - 1) * (cellSize + 15);
-        //cell.y = (y - 1) * (cellSize + 15);
+
         cell.width = cellSize;
         cell.height = cellSize;
         cell.interactive = true;
@@ -124,7 +128,6 @@ class Cell extends Container{
         });
         cell.on('mouseenter', ()=>{
             this.hover.alpha = 0.1;
-            //cell.width = cellSize + 3;
         });
         cell.on('mouseleave', ()=>{
             this.hover.alpha = 0;
@@ -141,130 +144,123 @@ class Cell extends Container{
         this.cell.height = this.cellSize;
     }
 
-    setWin(value: boolean){
+    setWin(value: boolean, cancellationToken: Signal<void>){
         this.highlight.visible = value;
+        const animation = this.signSpine;
+        if (!animation){
+            return;
+        }
+        if (value == false) {
+            animation.destroy();
+            this.signSpine = null;
+            this.removeChild(animation);
+            return;
+        }
+        let stop: boolean = false;
+        const h = (t: number)=>{
+            if (stop == true){
+                this.app.ticker.remove(h);
+                return;
+            }
+            animation.update(t/100);
+        };
+        cancellationToken.add(()=>{
+            stop = true;
+        })
+        this.app.ticker.add(h);
+        animation.state.addListener({
+            complete:(e)=>{
+                stop = true;
+            },
+        })
+        if (animation.state.hasAnimation('win')) {
+            animation.state.setAnimation(0, 'win', false);
+            animation.state.timeScale = 0.5;
+            animation.autoUpdate = false;
+        }
         //this.cell.texture = this.resources.winTexture;
     }
 
     animateSignFrames(sign: Sign, cancellationToken: Signal<void>){
-        const cellSize = this.cellSize;
+        return new Promise<void>((resolve)=>{
+            const cellSize = this.cellSize;
 
-        const aniSprite = new AnimatedSprite(this.resources.frameAnimations.animations[['', 'cross', 'circle'][sign]]);
-        //aniSprite.texture = Texture.WHITE;
-        aniSprite.anchor.set(0.5, 0.5);
-        aniSprite.play();
-        cancellationToken.add(()=>{
-            aniSprite.stop();
-            this.removeChild(aniSprite);
-            this.setSign(sign);
+            const aniSprite = new AnimatedSprite(this.resources.frameAnimations.animations[['', 'cross', 'circle'][sign]]);
+            aniSprite.anchor.set(0.5, 0.5);
+            aniSprite.play();
+            cancellationToken.add(()=>{
+                aniSprite.stop();
+                this.removeChild(aniSprite);
+                this.setSign(sign);
+            })
+            aniSprite.width = cellSize * 1.52;
+            aniSprite.height = cellSize * 1.52;
+            console.log(aniSprite.texture.orig, aniSprite.getBounds(), cellSize, aniSprite);
+
+            this.addChild(aniSprite);
+            aniSprite.loop = false;
+            aniSprite.onComplete = ()=>{
+                console.log('complete circle');
+                aniSprite.stop();
+                this.removeChild(aniSprite);
+                this.setSign(sign);
+
+                this.model.botMove();
+                resolve();
+            }
         })
-        //aniSprite.x = (this.posX - 1) * (cellSize + 15);
-        //aniSprite.y = (this.posY - 1) * (cellSize + 15);
-        aniSprite.width = cellSize * 1.52;
-        aniSprite.height = cellSize * 1.52;
-        console.log(aniSprite.texture.orig, aniSprite.getBounds(), cellSize, aniSprite);
-
-        this.addChild(aniSprite);
-        aniSprite.loop = false;
-        aniSprite.onComplete = ()=>{
-            console.log('complete circle');
-            aniSprite.stop();
-            this.removeChild(aniSprite);
-            this.setSign(sign);
-            //this.views[y][x].setSign(sign);
-            //if (this.model.currentPlayerIndex ==  1){
-            this.model.botMove();
-            //}
-        }
+        
     }
 
-    animateSignSpine(sign: Sign, cancellationToken: Signal<void>){
-        const cellSize = this.cellSize;
-
-        const resource = [null, this.resources.spineCrossData, this.resources.spineCircleData][sign];
-        //resource.width = cellSize;
-        //resource.height = cellSize;
-        console.log(resource)
-        const animation = new Spine(resource.spineData);
-        //animation.state.setAnimation(0, 'win', false);
-        if (animation.state.hasAnimation('draw')) {
-            // run forever, little boy!
-            animation.state.setAnimation(0, 'draw', false);
-            // dont run too fast
-            animation.state.timeScale = 0.5;
-            // update yourself
-            animation.autoUpdate = false;
-        }
-        let stop: boolean = false;
-        const h = (t: number)=>{
-            //console.log(t);
-            if (stop == true){
-                this.app.ticker.remove(h);
-                aniSprite.destroy();
-                this.removeChild(aniSprite);
-                return;
+    animateSignSpine(sign: Sign, cancellationToken: Signal<void>): Promise<void>{
+        return new Promise((resolve)=>{
+           const cellSize = this.cellSize;
+            const resource = [null, this.resources.spineCrossData, this.resources.spineCircleData][sign];
+            console.log(resource)
+            const animation = new Spine(resource.spineData);
+            this.signSpine = animation;
+            if (animation.state.hasAnimation('draw')) {
+                animation.state.setAnimation(0, 'draw', false);
+                animation.state.timeScale = 0.5;
+                animation.autoUpdate = false;
             }
-            aniSprite.update(t/100);
-        };
-        cancellationToken.add(()=>{
-            aniSprite.autoUpdate = false;
-            stop = true;
+            let stop: boolean = false;
+            const h = (t: number)=>{
+                if (stop == true){
+                    this.app.ticker.remove(h);
+                    resolve();
+                    //aniSprite.destroy();
+                    //this.removeChild(aniSprite);
+                    return;
+                }
+                aniSprite.update(t/100);
+            };
+            cancellationToken.add(()=>{
+                stop = true;
+            })
+            this.app.ticker.add(h);
+            animation.state.addListener({
+                complete:(e)=>{
+                    console.log('complete circle');
+                    stop = true;
+                    //this.setSign(sign);
+                    this.model.botMove();
+                }
+            })
+            const aniSprite = animation;
+            
+            aniSprite.width = cellSize * 1;
+            aniSprite.height =  cellSize * 1;
+            this.addChild(aniSprite);  
         })
-        this.app.ticker.add(h);
-        //animation.pivot.set(-100,-100)
-        //animation.position.set(100, 100);
-        animation.state.addListener({
-            complete:(e)=>{
-                
-                console.log('complete circle');
-            aniSprite.autoUpdate = false;
-            stop = true;
-            //aniSprite.destroy();
-            //this.removeChild(aniSprite);
-            this.setSign(sign);
-            //this.views[y][x].setSign(sign);
-            //if (this.model.currentPlayerIndex ==  1){
-            this.model.botMove();
-            //}
-                //console.log('complete spine')
-            },
-            event: (e)=>{
-                console.log(e);
-            }
-        })
-        const aniSprite = animation;
-        //const aniSprite = new AnimatedSprite(this.resources.frameAnimations.animations[['', 'cross', 'circle'][sign]]);
-        //aniSprite.texture = Texture.WHITE;
-        //aniSprite.play();
-        //aniSprite.x = (this.posX - 1) * (cellSize + 15);
-        //aniSprite.y = (this.posY - 1) * (cellSize + 15);
         
-        aniSprite.width = cellSize * 1;
-        aniSprite.height =  cellSize * 1;
-        //aniSprite.pivot.set(-aniSprite.width / 2, -aniSprite.height/2);
-        this.addChild(aniSprite);
-        console.log(aniSprite.width, aniSprite.height, aniSprite.getBounds());
-        //aniSprite.width = 10;
-        //aniSprite.height = 10;
-        
-        /*aniSprite.loop = false;
-        aniSprite.onComplete = ()=>{
-            console.log('complete circle');
-            aniSprite.stop();
-            this.removeChild(aniSprite);
-            this.setSign(sign);
-            //this.views[y][x].setSign(sign);
-            if (this.model.currentPlayerIndex ==  1){
-                this.model.botMove();
-            }
-        }*/    
     }
 
     animateSign(sign: Sign, cancellationToken: Signal<void>){
         if (spineEnabled){
-            this.animateSignSpine(sign, cancellationToken)
+            return this.animateSignSpine(sign, cancellationToken)
         }  else {
-            this.animateSignFrames(sign, cancellationToken);
+            return this.animateSignFrames(sign, cancellationToken);
         }
     }
 }

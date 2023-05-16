@@ -23,24 +23,13 @@ export class WinMessage{
             if (scaler>=1){
                 scaler = 1;
                 app.ticker.remove(h);
-                //ticker.stop();
             }
             winMessage.scale.set(scaler, scaler);
-            //ticker.destroy();
-            //app.ticker.remove()
         }
         const ticker = app.ticker.add(h);
         app.stage.addChild(winMessage);
         winMessage.interactive = true;
         winMessage.on('click', ()=>{
-           /* app.stage.removeChild(winMessage);
-            winMessage.destroy();
-            model.start();
-            model.field.map((row, y)=>{
-                return row.map((sign, x)=> {
-                views[y][x].texture = [Texture.WHITE, crossTexture, circleTexture][sign];   
-                });
-            });*/
             this.onPlayAgain?.();
         })
     }
